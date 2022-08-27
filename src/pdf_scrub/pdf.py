@@ -23,17 +23,19 @@ class PDF:
             yield self._compress(potential=potential)
 
     def _remove_metadata(self) -> Path:
-        block_pruner = BlockPruner(start=r"[0-9]+\ [0-9]+\ obj", end="endobj", needle=r"DocumentID")
+        block_pruner = BlockPruner(start=r"[0-9]+\ [0-9]+\ obj", end="endobj", needle="DocumentID")
         remove_metadata = block_pruner.prune_file(self.scrubbed)
-        out = self.scrubbed.parent.joinpath(f"{self.scrubbed.name}.no_metadata")
+        out = self._file_path("no_metadata")
         with open(out, "w+b") as output_file:
             output_file.write(remove_metadata)
         return out
 
+    def _file_path(self, name: str | int) -> Path:
+        return self.scrubbed.parent.joinpath(f"{self.scrubbed.name}.{name}")
+
     def _remove_potential_watermark(self, needle: str, attempt: int) -> Path:
         block_pruner = BlockPruner(start=r"[0-9]+\ [0-9]+\ obj", end="endobj", needle=needle)
-        out = self.scrubbed.parent.joinpath(f"{self.scrubbed.name}.{attempt}")
-
+        out = self._file_path(attempt)
         potential = block_pruner.prune_file(self.scrubbed)
         with open(out, "w+b") as output_file:
             output_file.write(potential)
@@ -65,7 +67,7 @@ class PDF:
         return out
 
     def _uncompress(self) -> Path:
-        out = Path(f"/tmp/{self.scrubbed.name}.uncompressed")
+        out = self._file_path("uncompressed")
         subprocess.check_call(
             [
                 "pdftk",

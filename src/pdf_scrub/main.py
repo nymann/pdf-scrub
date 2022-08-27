@@ -9,8 +9,8 @@ app = typer.Typer()
 
 @app.command()
 def scrub(files: list[Path]) -> None:
-    for file in files:
-        pdf = PDF(pdf_file=file)
+    for pdf_file in files:
+        pdf = PDF(pdf_file=pdf_file)
         for potential in pdf.scrub():
             typer.echo(potential)
 
