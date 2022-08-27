@@ -23,4 +23,4 @@ jobs:
           python -m pip install --upgrade pip
       - name: Run Lint
         run: |
-          make tests
+          make lint
