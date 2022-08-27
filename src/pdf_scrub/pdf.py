@@ -19,7 +19,8 @@ class PDF:
         self.scrubbed = self._remove_metadata()
         for index, possibility in enumerate(self._find_possible_watermarks()):
             needle: str = possibility.strip("\n")
-            yield self._remove_potential_watermark(needle=needle, attempt=index)
+            potential = self._remove_potential_watermark(needle=needle, attempt=index)
+            yield self._compress(potential=potential)
 
     def _remove_metadata(self) -> Path:
         block_pruner = BlockPruner(start=r"[0-9]+\ [0-9]+\ obj", end="endobj", needle=r"DocumentID")
@@ -46,6 +47,19 @@ class PDF:
                 "--decrypt",
                 self.scrubbed,
                 out,
+            ],
+        )
+        return out
+
+    def _compress(self, potential: Path) -> Path:
+        out = Path(f"/tmp/{potential.name}.compressed")
+        subprocess.check_call(
+            [
+                "pdftk",
+                potential,
+                "output",
+                out,
+                "compress",
             ],
         )
         return out
